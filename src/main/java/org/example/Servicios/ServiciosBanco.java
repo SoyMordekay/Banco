@@ -1,4 +1,4 @@
-package org.example.Servicios.Servicios;
+package org.example.Servicios;
 
 import org.example.Entidades.Banco;
 import org.example.Entidades.Usuarios;
@@ -9,20 +9,27 @@ import java.util.Scanner;
 public class ServiciosBanco extends Banco {
     Scanner scanner = new Scanner(System.in);
 
+    private Usuarios usuarioActual;
+
     ArrayList<Usuarios> listaDeUsuariosBanco = getListaUsuariosBanco();
 
+    public ServiciosBanco() {
+    }
 
     public void agregarUsuario(Usuarios usuario) {
         listaDeUsuariosBanco.add(usuario);
         System.out.println(listaDeUsuariosBanco.toString());
-
     }
 
+    public boolean iniciarSesion() {
+        System.out.println("nombre de Usuario");
+        String nombreUsuario = scanner.next();
+        System.out.println("contraseña");
+        String pass = scanner.next();
 
-
-    public boolean iniciarSesion(String nombreUsuario, String contrasena) {
-        for (Usuarios usuario : UsuariosBanco) {
-            if (usuario.getNombre().equals(nombreUsuario) && usuario.getContrasena().equals(contrasena)) {
+        for (Usuarios usuario : listaDeUsuariosBanco) {
+            if (usuario.getNombre().equals(nombreUsuario) && usuario.getPass().equals(pass)) {
+                usuarioActual = usuario;
                 System.out.println("Inicio de sesión exitoso para " + nombreUsuario);
                 return true;
             }
@@ -31,69 +38,109 @@ public class ServiciosBanco extends Banco {
         return false;
     }
 
-    // Intentar iniciar sesión
-    boolean inicioSesionExitoso = iniciarSesion("nombreUsuario", "contrasenaSegura");
-        if (inicioSesionExitoso) {
-        // El inicio de sesión fue exitoso, puedes redirigir al usuario a su área personal, por ejemplo.
+    public void mostrarMenu() {
 
+        while (true) {
+            System.out.println("\nMenú del Banco");
+            System.out.println("1. Iniciar sesión");
+            System.out.println("2. Salir");
 
+            if (usuarioActual != null) {
+                System.out.println("3. Depositar dinero");
+                System.out.println("4. Retirar dinero");
+                System.out.println("5. Transferir dinero");
+            }
 
+            System.out.print("Seleccione una opción: ");
+            int opcion = scanner.nextInt();
 
-
-    } else {
-        // El inicio de sesión falló, puedes mostrar un mensaje de error al usuario.
-    }
-
-
-
-
-
-
-
-
-/*    public boolean validarCredenciales(Usuarios usuario,String nombreUsuario, String contrasena) {
-
-        return usuario.getNombre().equals(nombreUsuario) && usuario.getPass().equals(contrasena);
-    }
-
-
-    public boolean login() {
-        System.out.println(listaDeUsuariosBanco + "usuario banco");
-        System.out.print("Nombre de usuario: ");
-        String nombreUsuario = scanner.next();
-        System.out.print("Contraseña: ");
-        String contrasena = scanner.next();
-
-        for (Usuarios usuario : getListaUsuariosBanco()) {
-            if (validarCredenciales(usuario,nombreUsuario, contrasena)) {
-                System.out.println("Inicio de sesión exitoso para " + nombreUsuario);
-                return true;
+            switch (opcion) {
+                case 1:
+                    iniciarSesion( ); // Aquí se inicia sesión con nombre de usuario y contraseña.
+                    break;
+                case 2:
+                    System.out.println("Saliendo del banco. ¡Hasta luego!");
+                    return;
+                case 3:
+                    if (usuarioActual != null) {
+                        depositarDinero();
+                    } else {
+                        System.out.println("Debes iniciar sesión primero.");
+                    }
+                    break;
+                case 4:
+                    if (usuarioActual != null) {
+                        retirarDinero();
+                    } else {
+                        System.out.println("Debes iniciar sesión primero.");
+                    }
+                    break;
+                case 5:
+                    if (usuarioActual != null) {
+                        transferirDinero();
+                    } else {
+                        System.out.println("Debes iniciar sesión primero.");
+                    }
+                    break;
+                default:
+                    System.out.println("Opción no válida. Intente nuevamente.");
             }
         }
-        System.out.println("Credenciales inválidas. El inicio de sesión ha fallado.");
-        return false; // Devuelve false si las credenciales no son válidas
-    }*/  // login *****************************************************************
+    }
 
+    private void depositarDinero() {
+        System.out.print("Cantidad a depositar: ");
+        double cantidad = scanner.nextDouble();
 
+        if (cantidad > 0) {
+            usuarioActual.depositarDinero(cantidad);
+            System.out.println("Depósito exitoso. Saldo actual: " + usuarioActual.getDinero());
+        } else {
+            System.out.println("La cantidad de depósito debe ser mayor que cero.");
+        }
+    }
 
-    /*public void retiro(Usuario usuario) {
-        if (usuario != null) {
-            System.out.println("Cuánto dinero desea retirar: ");
-            float dineroRetiro = scanner.nextFloat();
+    private void retirarDinero() {
+        System.out.print("Cantidad a retirar: ");
+        double cantidad = scanner.nextDouble();
 
-            if (dineroRetiro <= usuario.getDinero()) {
-                usuario.setDinero(usuario.getDinero() - dineroRetiro);
-                System.out.println("Ha retirado " + dineroRetiro + ". Su saldo disponible es: " + usuario.getDinero());
+        boolean retiroExitoso = usuarioActual.retirarDinero(cantidad);
+
+        if (retiroExitoso) {
+            System.out.println("Retiro exitoso. Saldo actual: " + usuarioActual.getDinero());
+        } else {
+            System.out.println("Fondos insuficientes o cantidad inválida para realizar el retiro.");
+        }
+    }
+
+    private void transferirDinero() {
+        scanner.nextLine(); // Limpiar el búfer de entrada
+        System.out.print("Nombre de usuario de destino: ");
+        String nombreDestino = scanner.nextLine();
+        System.out.print("Cantidad a transferir: ");
+        double cantidad = scanner.nextDouble();
+
+        Usuarios usuarioDestino = buscarUsuarioPorNombre(nombreDestino);
+
+        if (usuarioDestino != null) {
+            boolean transferenciaExitosa = usuarioActual.transferirDinero(usuarioDestino, cantidad);
+
+            if (transferenciaExitosa) {
+                System.out.println("Transferencia exitosa. Saldo actual: " + usuarioActual.getDinero());
             } else {
-                System.out.println("No tiene suficiente dinero. Saldo actual: " + usuario.getDinero());
+                System.out.println("Fondos insuficientes o cantidad inválida para realizar la transferencia.");
             }
         } else {
-            System.out.println("No se puede realizar el retiro, inicie sesión primero.");
+            System.out.println("El usuario de destino no existe.");
         }
-    }*/
+    }
 
-    //public void traferir(){}
-
-    //public void consignar(){}
-
+    private Usuarios buscarUsuarioPorNombre(String nombreUsuario) {
+        for (Usuarios usuario : listaDeUsuariosBanco) {
+            if (usuario.getNombre().equals(nombreUsuario)) {
+                return usuario;
+            }
+        }
+        return null;
+    }
 }

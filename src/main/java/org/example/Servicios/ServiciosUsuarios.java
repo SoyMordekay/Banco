@@ -1,4 +1,4 @@
-package org.example.Servicios.Servicios;
+package org.example.Servicios;
 
 import org.example.Entidades.Usuarios;
 
